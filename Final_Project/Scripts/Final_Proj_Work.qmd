@@ -10,18 +10,80 @@ format: html
 
 ## Libraries
 ```{r}
+library(shiny)
 library(tidyverse)
+library(rsconnect)
 library(here)
-
+library(dplyr)
+library(ggplot2)
+library(bslib)
 ```
 
 
 
 ## Data
 ```{r}
-tile_data<-read.csv(here("Data", "annotations.csv"))
+tile_data<-read.csv(here("Final_Project","Data", "annotations.csv"))
 View(tile_data)
+#ask jamie why there's an asterix by the Turf 
 ```
+
+
+## Clean the Data
+```{r}
+clean_tile_data<-tile_data%>%
+  select(Name, Atoll, Site, Transect, Treatment,Row, Column, Label.code)%>%
+  group_by(Label.code) %>%
+  mutate(Label_Count = n()) %>%
+  ungroup()
+View(clean_tile_data)
+#Change the names of the Labels to better names
+```
+
+
+Options: boxplot of Caged vs Uncaged where you can select substrate:check
+plot where you can select site and/or atoll and see the totals of each
+select by transect and see dist
+
+```{r}
+# Define UI for application that draws a density plot
+ui <- fluidPage(
+  selectInput(inputId= "select_substrate",               #what I want the user to do
+              label="Select a Substrate to Investigate",                 #tell them what to do
+              choices=unique(clean_tile_data$Label.code),     #define choices for user
+              selected="_Co",                       #default choice 
+              multiple=FALSE),                        #only allow one selection because my brain can't handle multiple
+  plotOutput("barplot"))                            #want a boxplot
+
+      
+server <- function(input, output) {                      #behind the scenes part
+
+  data <- reactive({
+    req(input$select_substrate)                             #defining data as reactive
+    clean_tile_data %>%
+      filter(Label.code == input$select_substrate)         #needs to match what I named it above
+  })
+  output$barplot <- renderPlot({                         #tell it to make my  plot
+    ggplot(data(), aes(x = Treatment, y = Label_Count)) + 
+             geom_bar(stat="identity") +               #define x axis
+      labs(title =paste("Caged vs Uncaged Presence of", input$select_substrate),  #make title change with substrate
+           x="Caging Treatment",
+           y="Number of Points Containing Substrate")                                     #label axes
+  })
+ 
+      
+  }
+  
+
+      
+shinyApp(ui = ui, server = server)                          #make da app
+
+```
+
+
+
+
+
 
 
   
