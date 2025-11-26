@@ -1,0 +1,27 @@
+---
+title: "Final Project"
+author: "Madigan Boborci"
+format: html
+---
+
+## Introduction:
+  This document is for all of the work associated with my final project. Data for this project was obtained from Dr. Jamie McDevitt-Irwin from her work in the Chagos Archipeligo. This data represents what was analyzed off of substrate tiles placed in differeent caging treatments to examine herbivory pressure on benthic community makeup. 
+
+
+## Libraries
+```{r}
+library(tidyverse)
+library(here)
+
+```
+
+
+
+## Data
+```{r}
+tile_data<-read.csv(here("Data", "annotations.csv"))
+View(tile_data)
+```
+
+
+  
