@@ -1,0 +1,144 @@
+#Libraries
+library(shiny)
+library(tidyverse)
+library(rsconnect)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(bslib)
+library(shinythemes)
+library(ggsci)
+library(RColorBrewer)
+library(plotly)
+library(paletteer)
+
+#DATA
+clean_tile_data<-tile_data%>%
+  select(Name, Atoll, Site, Transect, Treatment,Row, Column, Label.code)%>%
+  group_by(Label.code) %>%
+  mutate(Label_Count = n()) %>%
+  ungroup()
+
+
+tile_data_small<-clean_tile_data%>%
+  filter(Label.code %in% c("_Co","_RDUP","TURF","_CAUL","_LOBO", "_CCA", "GREEN", "_CCAG", "_GREN","_SED"))
+
+
+
+
+#App
+my_theme <- bs_theme(            #customize an existing bootstraps theme a little
+  bootswatch = "sandstone",
+  base_font = font_google("EB Garamond"))
+
+ui <- navbarPage(
+  title= "Chagos Settlement Tile Data Analysis",       
+  theme=my_theme,
+  
+  
+  tabPanel(title="Home Page",       #make a homepage as an app intro
+           h1("Welcome to my Chagos Tile Analysis App"),
+           p("Data for this project was obtained from Dr. Jamie McDevitt-Irwin from her work in the Chagos Archipeligo. This data represents what was analyzed off of substrate tiles placed in different caging treatments to examine herbivory pressure on benthic community makeup. 
+This application allows you to investigate ecological data from coral tiles based on different experimental variables: substrate, location (atoll), and caging treatment. Below is a map of the Chagos Archipelago, displaying all of the atolls."),
+           ### Adding photo to homepage          
+           tags$div(       
+             style = "text-align: center; margin: 30px 0;",
+             tags$img(
+               src = "https://upload.wikimedia.org/wikipedia/commons/5/57/Chagos_map2y.PNG", 
+               alt = "Chagos Archipelago",
+               style = "max-width: 60%; height: 60%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);"
+             )
+           ),
+           hr(),),
+  
+  tabPanel(            #first tab is data dictionary
+    title = "Data Dictionary",
+    div(style = "padding: 20px;",
+        p("This table provides an explanation of the substrate codes used during analysis"),
+        tableOutput("static_summary") # Output for the static table
+    )
+  ),
+  
+  tabPanel(         #next tab is substrate output
+    title="Investigate by Substrate",
+    selectInput(inputId= "select_substrate",       #what I want the user to do
+                label="Select a Substrate to Investigate",       #tell them what to do
+                choices=unique(clean_tile_data$Label.code),     #define choices for user
+                selected="_Co",                       #default choice 
+                multiple=FALSE),                        #only allow one selection because my brain can't handle multiple
+    plotOutput("barplot")),   
+  
+  tabPanel(          #third tab is the select by location to see all substrates
+    title="Investigate by Atoll",
+    selectInput(inputId="select_atoll",
+                label="Select an Atoll to Look At",
+                choices=unique(clean_tile_data$Atoll),
+                selected="Egmont",
+                multiple=FALSE),
+    plotOutput("pointplot")),
+  
+  tabPanel(            #now look by treatment at a subset of substrates
+    title="Investigate by Caging Treatment",
+    radioButtons(inputId="select_treatment",
+                 label="Choose a Caging Treatment",
+                 choices=unique(clean_tile_data$Treatment)),
+    plotOutput("lollipop")))
+
+
+
+server <- function(input, output) {                      #behind the scenes part
+  
+  data_substrate <- reactive({                         #creating the reactive for the choice of substrate for plot 1
+    req(input$select_substrate) 
+    clean_tile_data %>%
+      filter(Label.code == input$select_substrate)
+  })
+  
+  data_atoll <- reactive({                              #creating the reactive for choice of atoll for plot 2
+    req(input$select_atoll)
+    clean_tile_data %>%
+      filter(Atoll == input$select_atoll)
+  })
+  
+  data_cage<-reactive({                                 #creating reactive for choice of treatment for plot 3
+    req(input$select_treatment)
+    tile_data_small%>%
+      filter(Treatment==input$select_treatment)
+  })
+  
+  output$static_summary<-renderTable({                    #including my data dictionary in the aopp for ease
+    Data_dictionary <- read_csv(here("Final_Project", "Data", "Final_DataDictionary.csv"))
+    return(Data_dictionary)
+  })
+  
+  output$barplot <- renderPlot({                         #render plot 1- choose substrate
+    ggplot(data_substrate(), aes(x = Treatment, y = Label_Count, fill=Treatment)) + 
+      geom_bar(stat="identity") +      #define x axis
+      scale_fill_brewer(palette="Paired")+
+      labs(title =paste("Caged vs Uncaged Presence of", input$select_substrate),  #make title change with substrate
+           x="Caging Treatment",
+           y="Number of Points Containing Substrate")                                     #label axes
+  })
+  output$pointplot<-renderPlot({                       #render plot 2-choose atoll, show sites and transects
+    ggplot(data_atoll(), aes(x=Label.code, y=Label_Count, color =Label.code,text = paste("Substrate:", Label.code)))+
+      geom_point()+
+      scale_color_paletteer_d("ggthemes::Tableau_20") + #need lots of colors
+      facet_wrap(~Site~Transect)+
+      labs(title =paste("Substrate Amounts on All Tiles on", input$select_atoll),  #make title change with atoll
+           x="Substrate Type",
+           y="Number of Points Containing Substrate")
+  })
+  
+  output$lollipop <-renderPlot ({                     #render plot 3- choose caging treatment 
+    ggplot(data_cage(), aes(x=Label.code, y=Label_Count, fill=Label.code))+
+      geom_segment(aes(x=Label.code, y=0, xend=Label.code,yend=Label_Count))+
+      geom_point(size=5, color="#499894", fill=alpha("#86BCB6", 0.3),  shape=21, stroke=2, show.legend=FALSE)+
+      labs(title=paste("Substrate Amounts on All Tiles for Treatment:", input$select_treatment),
+           x="Substrate Type",
+           y="Number of Points Containing Substrate")
+  }) 
+}
+
+
+
+shinyApp(ui = ui, server = server)                          #make da app
