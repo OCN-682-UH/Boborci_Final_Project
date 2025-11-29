@@ -139,6 +139,4 @@ server <- function(input, output) {                      #behind the scenes part
   }) 
 }
 
-
-
 shinyApp(ui = ui, server = server)                          #make da app
