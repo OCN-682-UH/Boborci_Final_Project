@@ -38,7 +38,7 @@ library(paletteer)
 ## Data
 ```{r}
 #| code-fold: true
-tile_data<-read.csv(here("Final_Project","Data", "annotations.csv"))
+tile_data<-read.csv(here("Chagos_Tile_App","Data", "annotations.csv"))
 #View(tile_data)
 #ask jamie why there's an asterix by the Turf 
 ```

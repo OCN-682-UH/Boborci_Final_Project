@@ -13,6 +13,8 @@ library(plotly)
 library(paletteer)
 
 #DATA
+tile_data<-read.csv(here("Chagos_Tile_App","Data", "annotations.csv")) 
+
 clean_tile_data<-tile_data%>%
   select(Name, Atoll, Site, Transect, Treatment,Row, Column, Label.code)%>%
   group_by(Label.code) %>%
