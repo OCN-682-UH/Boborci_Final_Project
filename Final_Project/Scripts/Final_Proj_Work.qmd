@@ -40,38 +40,96 @@ View(clean_tile_data)
 #Change the names of the Labels to better names
 ```
 
+Make another dataset that's filtered for easier viewing:
+```{r}
+tile_data_small<-clean_tile_data%>%
+  filter(Label.code %in% c("_Co","_RDUP","TURF","_CAUL","_LOBO", "_CCA", "GREEN", "_CCAG", "_GREN","_SED"))
+```
+
 
 Options: boxplot of Caged vs Uncaged where you can select substrate:check
 plot where you can select site and/or atoll and see the totals of each
 select by transect and see dist
+violin plot, select caged vs ubcaged, choose 4-5 popular substrates to see change 
 
 ```{r}
-# Define UI for application that draws a density plot
 ui <- fluidPage(
-  selectInput(inputId= "select_substrate",               #what I want the user to do
-              label="Select a Substrate to Investigate",                 #tell them what to do
+  tabsetPanel(
+    
+    tabPanel(
+      title="Investigate by Substrate",
+           selectInput(inputId= "select_substrate",       #what I want the user to do
+              label="Select a Substrate to Investigate",       #tell them what to do
               choices=unique(clean_tile_data$Label.code),     #define choices for user
               selected="_Co",                       #default choice 
               multiple=FALSE),                        #only allow one selection because my brain can't handle multiple
-  plotOutput("barplot"))                            #want a boxplot
+  plotOutput("barplot")),   
+  
+  tabPanel(        
+    title="Investigate by Atoll",
+           selectInput(inputId="select_atoll",
+                       label="Select an Atoll to Look At",
+                       choices=unique(clean_tile_data$Atoll),
+                       selected="Egmont",
+                       multiple=FALSE),
+           plotOutput("pointplot")),
+  
+  tabPanel(
+    title="Investigate by Caging Treatment",
+      radioButtons(inputId="select_treatment",
+                    label="Choose a Caging Treatment",
+                    choices=unique(clean_tile_data$Treatment)),
+    plotOutput("lollipop"))))
+  
+  
+
+
 
       
 server <- function(input, output) {                      #behind the scenes part
 
-  data <- reactive({
-    req(input$select_substrate)                             #defining data as reactive
+   data_substrate <- reactive({
+    req(input$select_substrate) 
     clean_tile_data %>%
-      filter(Label.code == input$select_substrate)         #needs to match what I named it above
+      filter(Label.code == input$select_substrate)
   })
+  
+  data_atoll <- reactive({ 
+    req(input$select_atoll)
+    clean_tile_data %>%
+      filter(Atoll == input$select_atoll)
+  })
+  
+  data_cage<-reactive({
+    req(input$select_treatment)
+    tile_data_small%>%
+      filter(Treatment==input$select_treatment)
+  })
+  
   output$barplot <- renderPlot({                         #tell it to make my  plot
-    ggplot(data(), aes(x = Treatment, y = Label_Count)) + 
+    ggplot(data_substrate(), aes(x = Treatment, y = Label_Count, fill=Treatment)) + 
              geom_bar(stat="identity") +               #define x axis
       labs(title =paste("Caged vs Uncaged Presence of", input$select_substrate),  #make title change with substrate
            x="Caging Treatment",
            y="Number of Points Containing Substrate")                                     #label axes
   })
+    output$pointplot<-renderPlot({
+      ggplot(data_atoll(), aes(x=Label.code, y=Label_Count, color =Label.code))+
+        geom_point()+
+        facet_wrap(~Site~Transect)+
+        labs(title =paste("Substrate Amounts on All Tiles on", input$select_atoll),  #make title change with atoll
+           x="Substrate Type",
+           y="Number of Points Containing Substrate")                                     #label axes
+    })
  
-      
+     output$lollipop <-renderPlot ({
+       ggplot(data_cage(), aes(x=Label.code, y=Label_Count, fill=Label.code))+
+         geom_segment(aes(x=Label.code, y=0, xend=Label.code,yend=Label_Count))+
+         geom_point(color="orange",size=5)+
+         labs(title=paste("Substrate Amounts on All Tiles for Treatment:", input$select_treatment),
+              x="Substrate Type",
+              y="Number of Points Containing Substrate")
+     }) 
   }
   
 
