@@ -13,7 +13,7 @@ library(plotly)
 library(paletteer)
 
 #DATA
-tile_data<-read.csv(here("Chagos_Tile_App","Data", "annotations.csv")) 
+tile_data<-read.csv("annotations.csv") 
 
 clean_tile_data<-tile_data%>%
   select(Name, Atoll, Site, Transect, Treatment,Row, Column, Label.code)%>%
@@ -108,8 +108,8 @@ server <- function(input, output) {                      #behind the scenes part
       filter(Treatment==input$select_treatment)
   })
   
-  output$static_summary<-renderTable({                    #including my data dictionary in the aopp for ease
-    Data_dictionary <- read_csv(here("Final_Project", "Data", "Final_DataDictionary.csv"))
+  output$static_summary<-renderTable({                    #including my data dictionary in the app for ease
+    Data_dictionary <- read_csv("Final_DataDictionary.csv")
     return(Data_dictionary)
   })
   
