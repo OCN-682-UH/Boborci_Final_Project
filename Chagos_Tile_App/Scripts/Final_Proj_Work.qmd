@@ -31,6 +31,7 @@ library(ggsci)
 library(RColorBrewer)
 library(plotly)
 library(paletteer)
+library(kableExtra)
 ```
 
 
@@ -192,7 +193,16 @@ shinyApp(ui = ui, server = server)                          #make da app
 ```
 
 
+Create markdown friendly table for Readme file
+```{r}
+#|ccode-fold: TRUE
+data_frame <- read.csv(here("Chagos_Tile_App","Data_Dictionary.csv"))
 
+# 1. Generate the Markdown table text
+markdown_table_text <- kable(data_frame, format = "markdown",row.names=FALSE)
+
+writeLines(markdown_table_text, "temp_readme_table.txt")
+```
 
 
 

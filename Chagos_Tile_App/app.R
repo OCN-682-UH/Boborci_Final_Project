@@ -40,7 +40,7 @@ ui <- navbarPage(
   
   tabPanel(title="Home Page",       #make a homepage as an app intro
            h1("Welcome to my Chagos Tile Analysis App"),
-           p("Data for this project was obtained from Dr. Jamie McDevitt-Irwin from her work in the Chagos Archipeligo. This data represents what was analyzed off of substrate tiles placed in different caging treatments to examine herbivory pressure on benthic community makeup. 
+           p("Data for this project was obtained from Dr. Jamie McDevitt-Irwin from her work in the Chagos Archipelago. This data represents what was analyzed off of substrate tiles placed in different caging treatments to examine herbivory pressure on benthic community makeup. 
 This application allows you to investigate ecological data from coral tiles based on different experimental variables: substrate, location (atoll), and caging treatment. Below is a map of the Chagos Archipelago, displaying all of the atolls."),
            ### Adding photo to homepage          
            tags$div(       
@@ -109,7 +109,7 @@ server <- function(input, output) {                      #behind the scenes part
   })
   
   output$static_summary<-renderTable({                    #including my data dictionary in the app for ease
-    Data_dictionary <- read_csv("Final_DataDictionary.csv")
+    Data_dictionary <- read_csv("Data_Dictionary.csv")
     return(Data_dictionary)
   })
   
@@ -119,7 +119,11 @@ server <- function(input, output) {                      #behind the scenes part
       scale_fill_brewer(palette="Paired")+
       labs(title =paste("Caged vs Uncaged Presence of", input$select_substrate),  #make title change with substrate
            x="Caging Treatment",
-           y="Number of Points Containing Substrate")                                     #label axes
+           y="Number of Points Containing Substrate")+                                     #label axes
+      theme_bw()+
+      theme(axis.text.x = element_text(size=8))+
+      theme(plot.title = element_text(face="bold"))
+      
   })
   output$pointplot<-renderPlot({                       #render plot 2-choose atoll, show sites and transects
     ggplot(data_atoll(), aes(x=Label.code, y=Label_Count, color =Label.code,text = paste("Substrate:", Label.code)))+
@@ -128,7 +132,11 @@ server <- function(input, output) {                      #behind the scenes part
       facet_wrap(~Site~Transect)+
       labs(title =paste("Substrate Amounts on All Tiles on", input$select_atoll),  #make title change with atoll
            x="Substrate Type",
-           y="Number of Points Containing Substrate")
+           y="Number of Points Containing Substrate")+
+      theme_bw()+
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8))+
+      theme(plot.title = element_text(face="bold"))
+      
   })
   
   output$lollipop <-renderPlot ({                     #render plot 3- choose caging treatment 
@@ -137,7 +145,11 @@ server <- function(input, output) {                      #behind the scenes part
       geom_point(size=5, color="#499894", fill=alpha("#86BCB6", 0.3),  shape=21, stroke=2, show.legend=FALSE)+
       labs(title=paste("Substrate Amounts on All Tiles for Treatment:", input$select_treatment),
            x="Substrate Type",
-           y="Number of Points Containing Substrate")
+           y="Number of Points Containing Substrate")+
+      theme_bw()+
+      theme(axis.text.x=element_text(size=8))+
+      theme(plot.title = element_text(face="bold"))
+      
   }) 
 }
 
