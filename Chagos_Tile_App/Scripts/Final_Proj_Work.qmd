@@ -39,9 +39,9 @@ library(kableExtra)
 ## Data
 ```{r}
 #| code-fold: true
-tile_data<-read.csv(here("Chagos_Tile_App","Data", "annotations.csv"))
+tile_data<-read.csv(here("Chagos_Tile_App","annotations.csv"))
 #View(tile_data)
-#ask jamie why there's an asterix by the Turf 
+
 ```
 
 
@@ -57,7 +57,7 @@ clean_tile_data<-tile_data%>%
 #Change the names of the Labels to better names
 ```
 
-Make another dataset that's filtered for easier viewing:
+Make another dataset that's a filtered subset for easier viewing:
 ```{r}
 #| code-fold: true
 tile_data_small<-clean_tile_data%>%
@@ -195,13 +195,13 @@ shinyApp(ui = ui, server = server)                          #make da app
 
 Create markdown friendly table for Readme file
 ```{r}
-#|ccode-fold: TRUE
-data_frame <- read.csv(here("Chagos_Tile_App","Data_Dictionary.csv"))
+#| code-fold: TRUE
+data_frame <- read.csv(here("Chagos_Tile_App","Data_Dictionary.csv")) #name dataframe to use
 
-# 1. Generate the Markdown table text
-markdown_table_text <- kable(data_frame, format = "markdown",row.names=FALSE)
 
-writeLines(markdown_table_text, "temp_readme_table.txt")
+markdown_table_text <- kable(data_frame, format = "markdown",row.names=FALSE)   #use kable to make a table, format markdown
+
+writeLines(markdown_table_text, "temp_readme_table.txt")   #this preserves the whole table, had issues earlier with it truncating so had to save like this 
 ```
 
 

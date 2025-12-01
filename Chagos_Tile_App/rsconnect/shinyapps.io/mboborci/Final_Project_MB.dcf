@@ -5,7 +5,7 @@ account: mboborci
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16196117
-bundleId: 11250650
+bundleId: 11258763
 url: https://mboborci.shinyapps.io/Final_Project_MB/
 version: 1
 asMultiple: FALSE
