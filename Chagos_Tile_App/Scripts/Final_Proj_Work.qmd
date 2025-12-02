@@ -52,16 +52,17 @@ clean_tile_data<-tile_data%>%
   select(Name, Atoll, Site, Transect, Treatment,Row, Column, Label.code)%>%
   group_by(Label.code) %>%
   mutate(Label_Count = n()) %>%
-  ungroup()
+  ungroup()%>%
 #View(clean_tile_data)
-#Change the names of the Labels to better names
+write_csv(here("Chagos_Tile_App","Data","clean_tile_data.csv"))
 ```
 
 Make another dataset that's a filtered subset for easier viewing:
 ```{r}
 #| code-fold: true
 tile_data_small<-clean_tile_data%>%
-  filter(Label.code %in% c("_Co","_RDUP","TURF","_CAUL","_LOBO", "_CCA", "GREEN", "_CCAG", "_GREN","_SED"))
+  filter(Label.code %in% c("_Co","_RDUP","TURF","_CAUL","_LOBO", "_CCA", "GREEN", "_CCAG", "_GREN","_SED"))%>%
+write_csv(here("Chagos_Tile_App","Data","tile_data_small.csv"))
 ```
 
 
